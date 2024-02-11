@@ -126,6 +126,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+dwh.cfg
 .env
 .venv
 env/
