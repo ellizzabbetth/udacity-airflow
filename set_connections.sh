@@ -36,7 +36,4 @@ echo $DWH_DB_USER
 ./airflow.sh airflow connections add 'aws_credentials' --conn-type 'aws' --conn-login $AWS_KEY --conn-password $AWS_SECRET
 
 
-./airflow.sh airflow connections add 'redshift' --conn-type 'postgres' --conn-login 'awsuser' --conn-password 'R3dsh1ft' --conn-host "default-workgroup.c460mqtebvyp.us-east-1.redshift.amazonaws.com" --conn-port 5439 --conn-schema 'dev'
-./airflow.sh airflow connections add 'aws_credentials' --conn-type 'aws' --conn-login 'AKIAYM24S7U7LJWGSNNK' --conn-password '1oDEChbmnnmD4C/Vz6dzmLgRDhvtQZt3pzg3lL2U'
-
 #https://unix.stackexchange.com/questions/444296/section-wise-variable-accessing-from-config-file
