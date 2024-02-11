@@ -36,4 +36,5 @@ echo $DWH_DB_USER
 ./airflow.sh airflow connections add 'aws_credentials' --conn-type 'aws' --conn-login $AWS_KEY --conn-password $AWS_SECRET
 
 
+
 #https://unix.stackexchange.com/questions/444296/section-wise-variable-accessing-from-config-file

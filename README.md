@@ -14,6 +14,27 @@ To bring up the entire app stack up, we use [docker-compose](https://docs.docker
 ```bash
 docker-compose up -d
 ```
+
+
+```
+set_connections.sh
+```
+
+```
+python setup_cluster.py --launch
+```
+
+```
+python setup_cluster.py --create_table
+```
+
+
+### To debug container
+https://stackoverflow.com/questions/37195222/how-to-view-log-output-using-docker-compose-run
+```
+docker logs <containerid>
+
+```
 Visit http://localhost:8080 once all containers are up and running.
 
 ## Configuring Connections in the Airflow Web Server UI
