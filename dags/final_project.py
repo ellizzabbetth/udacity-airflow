@@ -1,18 +1,27 @@
 from datetime import datetime, timedelta
-from airflow.plugins_manager import AirflowPlugin
+# from airflow.plugins_manager import AirflowPlugin
 
 import pendulum
 import os
 from airflow.decorators import dag
 
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.postgres_operator import PostgresOperator
+# https://knowledge.udacity.com/questions/992336
+from operators.stage_redshift import StageToRedshiftOperator
+from operators.load_fact import LoadFactOperator
+from operators.load_dimension import LoadDimensionOperator
+from operators.data_quality import DataQualityOperator
 
-from airflow.operators.udacity_plugin import StageToRedshiftOperator
-from airflow.operators.udacity_plugin import LoadFactOperator
-from airflow.operators.udacity_plugin import LoadDimensionOperator
-from airflow.operators.udacity_plugin import DataQualityOperator
 
-from helpers import SqlQueries
+
+# from final_project_operators.load_fact import LoadFactOperator
+
+# from final_project_operators.load_dimension import LoadDimensionOperator
+
+# from final_project_operators.data_quality import DataQualityOperator
+
+from helpers import SqlQueries, ConfigureDataAccess
 
 default_args = {
     "owner": "ebradley",
@@ -34,69 +43,86 @@ default_args = {
 def final_project():
 
     start_operator = DummyOperator(task_id="Begin_execution")
-
+# https://github.com/dipenich1000/Udacity-Pipeline-Project/blob/main/dags/udac_example_dag.py
     stage_events_to_redshift = StageToRedshiftOperator(
         task_id="load_stage_events",
-        redshift_conn_id="redshift",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
         aws_credentials_id="aws_credentials",
-        s3_bucket="udacity-airflow-project-marcelo",
-        s3_key="log-data/{{ execution_date.year }}/{{ execution_date.month }}/{{ ds }}-events.json",
-        jsonpath="log_json_path.json",
-        table_name="public.staging_events"
+        s3_bucket="udacity-data-pipelines-ebradley",
+        s3_key='log_data',
+        copy_json_option='s3://udacity-data-pipelines-ebradley/log_json_path.json',
+        region='us-west-2', #east?
+        table="public.staging_events",
+        # dag=dag
+        # s3_key="log-data/{{ execution_date.year }}/{{ execution_date.month }}/{{ ds }}-events.json",
+        # jsonpath="log_json_path.json",
+        # region=ConfigureDataAccess.REGION
     )
 
     stage_songs_to_redshift = StageToRedshiftOperator(
         task_id="load_stage_songs",
         redshift_conn_id="redshift",
         aws_credentials_id="aws_credentials",
-        s3_bucket="udacity-airflow-project-marcelo",
+        s3_bucket=ConfigureDataAccess.S3_BUCKET,
         s3_key="song-data/A/A/A/",
-        table_name="public.staging_songs"
+        copy_json_option='auto',
+        table="public.staging_songs",
+        region='us-west-2',
     )
 
     load_songplays_table = LoadFactOperator(
         task_id="Load_songplays_fact_table",
         redshift_conn_id="redshift",
-        table="songplays",
-        sql_query=SqlQueries.songplay_table_insert
+        table="public.songplays",
+        songplay_sql=SqlQueries.songplay_table_insert
     )
 
     load_user_dimension_table = LoadDimensionOperator(
         task_id="Load_user_dim_table",
-        redshift_conn_id="redshift",
-        load_mode="truncate_insert",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        #load_mode="truncate_insert",
+        truncate=True,
         sql_query=SqlQueries.user_table_insert,
-        table="users",
+        table_name="users",
     )
 
     load_song_dimension_table = LoadDimensionOperator(
         task_id="Load_song_dim_table",
-        redshift_conn_id="redshift",
-        load_mode="truncate_insert",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+       # load_mode="truncate_insert",
+        truncate=True,
         sql_query=SqlQueries.song_table_insert,
-        table="songs",
+        table_name="songs",
     )
 
     load_artist_dimension_table = LoadDimensionOperator(
         task_id="Load_artist_dim_table",
-        redshift_conn_id="redshift",
-        load_mode="truncate_insert",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        truncate=True,
+        #load_mode="truncate_insert",
         sql_query=SqlQueries.artist_table_insert,
-        table="artists",
+        table_name="artists",
     )
 
     load_time_dimension_table = LoadDimensionOperator(
         task_id="Load_time_dim_table",
-        redshift_conn_id="redshift",
-        load_mode="truncate_insert",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        # load_mode="truncate_insert",
+        truncate=True,
         sql_query=SqlQueries.time_table_insert,
-        table="time",
+        table_name="time",
     )
 
     run_quality_checks = DataQualityOperator(
         task_id="Run_data_quality_checks",
-        redshift_conn_id="redshift",
-        tables=["artists", "songplays", "songs", "time", "users"],
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        dq_checks_list=[
+            { 'sql_testcase': 'SELECT COUNT(*) FROM public.users WHERE COALESCE(first_name, last_name, gender, level) IS NULL;', 'expected_result': 0 },
+            { 'sql_testcase': 'SELECT COUNT(*) FROM public.songs WHERE COALESCE(title, artistid, year::text, duration::text) IS NULL;', 'expected_result': 0 },
+            { 'sql_testcase': 'SELECT COUNT(*) FROM public.artists WHERE COALESCE(name, location, lattitude::text, longitude::text) IS NULL;', 'expected_result': 0 },
+            { 'sql_testcase': 'SELECT COUNT(*) FROM public.time WHERE COALESCE(hour::text, day::text, week::text, month::text, year::text, weekday::text) is NULL;', 'expected_result': 0 }
+        ]
+        #tables=["artists", "songplays", "songs", "time", "users"],
     )
 
     end_operator = DummyOperator(task_id="End_execution")

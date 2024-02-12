@@ -14,8 +14,8 @@ section="CLUSTER"
 variable="TEST"
 
 # Get the value of the variable from the .env file
-[ ! -f .env ] || export $(grep -v '^#' .env | xargs)
-value=$(grep "^${section}\[" .env | cut -d'[' -f2 | cut -d']' -f1 | grep "^${variable}=" | cut -d'=' -f2)
+# [ ! -f .env ] || export $(grep -v '^#' .env | xargs)
+# value=$(grep "^${section}\[" .env | cut -d'[' -f2 | cut -d']' -f1 | grep "^${variable}=" | cut -d'=' -f2)
 
 # Print the value
 echo "The value of ${variable} in ${section} is: ${value}"

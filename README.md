@@ -35,6 +35,11 @@ https://stackoverflow.com/questions/37195222/how-to-view-log-output-using-docker
 docker logs <containerid>
 
 ```
+For example:
+```
+docker-compose logs airflow-webserver
+```
+
 Visit http://localhost:8080 once all containers are up and running.
 
 ## Configuring Connections in the Airflow Web Server UI
@@ -88,3 +93,17 @@ Before diving into development, familiarize yourself with the following files:
 - [dags/final_project.py](dags/final_project.py)
 
 Now you're ready to embark on this exciting journey into the world of Data Pipelines with Airflow!
+
+
+## Debug
+
+refresh dags
+```
+docker-compose exec -it airflow-webserver airflow dags reserialize
+```
+
+or print the full stacktrace for python error found in dags
+
+```
+docker-compose exec airflow airflow list_dags
+```
