@@ -127,6 +127,8 @@ celerybeat.pid
 
 # Environments
 dwh.cfg
+.csv
+*.csv
 set_connections.sh
 .env
 .venv

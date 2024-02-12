@@ -9,6 +9,7 @@ from time import sleep
 from pprint import pprint
 import psycopg2
 import sys
+import csv
 
 
 def get_config():
@@ -21,6 +22,24 @@ def get_config():
     config = configparser.ConfigParser()
     config.read('dwh.cfg')
     return config
+
+
+
+# BOM is omitted in the result
+def update_credentials_aws(path_to_file: str = "utils/awsuser_accessKeys.csv"):
+    """Function to update credentials for dwh.cfg file
+
+    Args:
+        path_to_file (str, optional): a direct path dwh.cfg file. 
+        Defaults to "new_user_credentials.csv".
+    """
+    result = {'AWS_ACCESS_KEY_ID': 'Access key ID', 'AWS_SECRET_ACCESS_KEY': 'Secret access key'}
+    with open(path_to_file, 'r',  encoding='utf-8-sig') as csvfile:
+     
+        reader = csv.DictReader(csvfile)
+        dict_item = list(map(dict, reader))
+        result = dict((key, dict_item[0][result[key]]) for key in result.keys())
+    update_configfile(result, 'AWS') 
 
 def update_configfile(items_info: dict, section: str):
     """Update config file stored same folder
@@ -352,8 +371,8 @@ def setup_cluster(args):
     #####
     
     if args.launch:
+        update_credentials_aws()
         ec2, s3, iam, redshift = create_client(DWH_REGION, AWS_KEY, AWS_SECRET)
-
 
         role_arn = create_iam_role(iam, DWH_IAM_ROLE_NAME)
 
@@ -388,7 +407,7 @@ def setup_cluster(args):
         path_to_file = 'create_tables.sql'
         print("CREATING TABLE...")
         create_tables_from_file(conn, cur, path_to_file)
-        print("CREATING TABLE SUCCESSFULLY!")
+        print("TABLE CREATED TABLE SUCCESSFULLY!")
         conn.close()
     
     

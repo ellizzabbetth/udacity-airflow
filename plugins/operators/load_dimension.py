@@ -20,3 +20,13 @@ class LoadDimensionOperator(BaseOperator):
 
     def execute(self, context):
         self.log.info('LoadDimensionOperator not implemented yet')
+
+
+# load_user_dimension_table = LoadDimensionOperator(
+#     task_id='Load_user_dim_table',
+#     dag=dag,
+#     redshift_conn_id='redshift',
+#     table='users',
+#     sql_statement=SqlQueries.user_table_insert,
+#     operation='truncate'
+# )

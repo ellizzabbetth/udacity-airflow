@@ -1,11 +1,24 @@
 #!/bin/bash
-
-
+set -o allexport
 source .env
+set +o allexport
+
+echo $dwh_host
 echo $AIRFLOW_UID
 echo $AWS_KEY
 echo $AWS_SECRET
+echo $DWH_DB_USER
 
+# Define the section and variable names
+section="CLUSTER"
+variable="TEST"
+
+# Get the value of the variable from the .env file
+[ ! -f .env ] || export $(grep -v '^#' .env | xargs)
+value=$(grep "^${section}\[" .env | cut -d'[' -f2 | cut -d']' -f1 | grep "^${variable}=" | cut -d'=' -f2)
+
+# Print the value
+echo "The value of ${variable} in ${section} is: ${value}"
 printValue()
 {
   section="$1"
@@ -20,10 +33,12 @@ printValue()
   done
 }
 
-dwh_host=$(printValue CLUSTER dwh_host < /etc/applications.conf)
+# get variable from section namt
+dwh_host=$(printValue CLUSTER dwh_host)
 echo $dwh_host
+DWH_DB_PASSWORD=$(printValue CLUSTER DWH_DB_PASSWORD < /etc/applications.conf)
 echo $DWH_DB_PASSWORD
-echo $DWH_DB_USER
+
 
 # ./airflow info
 # docker airflow-cli info
