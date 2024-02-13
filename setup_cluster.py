@@ -33,7 +33,7 @@ def update_credentials_aws(path_to_file: str = "utils/awsuser_accessKeys.csv"):
         path_to_file (str, optional): a direct path dwh.cfg file. 
         Defaults to "new_user_credentials.csv".
     """
-    result = {'AWS_ACCESS_KEY_ID': 'Access key ID', 'AWS_SECRET_ACCESS_KEY': 'Secret access key'}
+    result = {'AWS_KEY': 'Access key ID', 'AWS_SECRET': 'Secret access key'}
     with open(path_to_file, 'r',  encoding='utf-8-sig') as csvfile:
      
         reader = csv.DictReader(csvfile)
@@ -50,7 +50,6 @@ def update_configfile(items_info: dict, section: str):
         section (str): section in dwh.cfg file
     """
     config = get_config()
-    # config.read('dwh.cfg')
     aws_config = config[section]
     
     for key, value in items_info.items():
@@ -68,7 +67,7 @@ def create_client(DWH_REGION, AWS_KEY, AWS_SECRET):
     :return: ec2, s3, iam (client for S3), redshift (client for Redshift) objects
     """
 
-    print("\ncreating clients...")
+    print("\nCreating ec2, s3, iam, redshift ...")
     ec2 = boto3.resource('ec2',
                          region_name=DWH_REGION,
                          aws_access_key_id=AWS_KEY,
@@ -129,7 +128,7 @@ def create_iam_role(iam, DWH_IAM_ROLE_NAME):
     except Exception as e:
         print("\nexception creating iam_role: {}".format(e))
 
-    # >>>>> attach policy to iam_role (S3 read only access)
+    # attach policy to iam_role (S3 read only access)
     print("\nattaching policy...")
     try:
         response = iam.attach_role_policy(
@@ -174,7 +173,7 @@ def create_redshift_cluster(redshift,
     :return: cluster info/section
     """
 
-    print("\ncreating cluster...")
+    print("\nCreating cluster...")
     try:
         response = redshift.create_cluster(
             ClusterIdentifier=DWH_CLUSTER_IDENTIFIER,
@@ -193,7 +192,7 @@ def create_redshift_cluster(redshift,
             )
 
     except ClientError as err:
-        print("\nexception creating cluster, error: {}".format(err))
+        print("\nException creating cluster. Error : {}".format(err))
         return None
 
     else:
@@ -372,7 +371,7 @@ def setup_cluster(args):
     
     if args.launch:
         update_credentials_aws()
-        ec2, s3, iam, redshift = create_client(DWH_REGION, AWS_KEY, AWS_SECRET)
+        ec2, iam, redshift = create_client(DWH_REGION, AWS_KEY, AWS_SECRET)
 
         role_arn = create_iam_role(iam, DWH_IAM_ROLE_NAME)
 
@@ -398,16 +397,15 @@ def setup_cluster(args):
             config.write(configfile)
         print("\nvalues of DWH_HOST, IAM_ROLE_ARN & IAM_SG updated in configuration file.")
 
-
         check_cluster_conn(DWH_ENDPOINT, DWH_DB_USER, DWH_DB_PASSWORD, DWH_PORT, DWH_DB_NAME)
         
     if args.create_table:
         conn = connect_database()
         cur = conn.cursor()
         path_to_file = 'create_tables.sql'
-        print("CREATING TABLE...")
+        print("Creating table...")
         create_tables_from_file(conn, cur, path_to_file)
-        print("TABLE CREATED TABLE SUCCESSFULLY!")
+        print("Tables created successfully")
         conn.close()
     
     

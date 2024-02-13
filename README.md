@@ -16,18 +16,47 @@ docker-compose up -d
 ```
 
 
+### Generate AWS Credentials and store .csv in root directory
+
+Follow these steps to create your AWS Credentials:
+
+Log into the AWS Console
+Search for and click on IAM
+Create a User
+Click "Add User"
+Name the user uniquely within your list of IAM users
+Click "Access Key - Programmatic Access"
+Click "Permissions"
+Click "Attach Existing Policies Directly"
+Search for and click on the following:
+"administratoraccess," which gives Airflow admin access to AWS
+"amazonredshiftfullaccess," which gives Airflow full access to Amazon Redshift
+"amazons3fullaccess," which gives Airflow full access to your S3 storage
+Click "Next"
+Do not add tags
+Click "Review"
+Click "Create User"
+Click "Download.csv." This downloads your automatically generated password.'
+In this document should be your Access Key Id (username) and Secret Key (password)
+Keep these so you can configure the user in Airflow
+
+### Execute shell script
 ```
 set_connections.sh
 ```
 
+
+### Set up aws resources
 ```
 python setup_cluster.py --launch
 ```
 
+### Create tables
 ```
 python setup_cluster.py --create_table
 ```
 
+### Inspect DAGs in ```http://localhost:8080/```
 
 ### To debug container
 https://stackoverflow.com/questions/37195222/how-to-view-log-output-using-docker-compose-run
