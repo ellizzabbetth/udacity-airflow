@@ -3,29 +3,32 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 import pendulum
+from airflow.providers.amazon.aws.hooks.base_aws import AwsGenericHook
 
 #https://knowledge.udacity.com/questions/838478
+# https://knowledge.udacity.com/questions/1012172
+
+# https://knowledge.udacity.com/questions/881025
 class StageToRedshiftOperator(BaseOperator):
     ui_color = '#358140'
     template_fields = ('s3_key',)
-    copy_sql = """
+    copy_sql_stmt = """
         COPY {}
         FROM '{}'
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
-        JSON '{}'
-        REGION '{}'
+        {} REGION '{}'
     """
+     
     @apply_defaults
     def __init__(self,
-                 redshift_conn_id='',
-                 aws_credentials_id='',
-                 table='',
-                 s3_bucket='',
-                 s3_key='',
-                 region='',
-                 truncate=False,
-                 copy_json_option='',
+                 redshift_conn_id="",
+                 aws_credentials_id="",
+                 table="",
+                 s3_bucket="",
+                 s3_key="",
+                 region="",
+                 data_format="",
                  *args, **kwargs):
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
@@ -34,34 +37,29 @@ class StageToRedshiftOperator(BaseOperator):
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
         self.region = region
-        self.truncate = truncate
-        self.copy_json_option = copy_json_option
-
+        self.data_format = data_format
+    
     def execute(self, context):
-        redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-        aws_hook = AwsHook(self.aws_credentials_id)
+        self.log.info(self.region)
+        aws_hook = AwsGenericHook(self.aws_credentials_id)
         credentials = aws_hook.get_credentials()
-        execution_date = pendulum.parse('2018-11-01')
-        year = execution_date.year
-        month = execution_date.month
-        ds = execution_date.strftime("%Y-%m-%d")
-
+        redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        
         self.log.info("Clearing data from destination Redshift table")
-        redshift.run(f"DELETE FROM {self.table}")
-
-        if self.truncate:
-            self.log.info(f'Truncate Redshift table {self.table}')
-            redshift.run(f'TRUNCATE {self.table}')
-
-
-        self.log.info("Copying data from S3 to Redshift") 
-        # SQL query parameters
-        rendered_s3_key = self.s3_key.format(**context)
-        s3_path = f's3://{self.s3_bucket}/{rendered_s3_key}'
-        formatted_sql = StageToRedshiftOperator.copy_sql.format(
-            self.table, s3_path, credentials.access_key,
-            credentials.secret_key, self.copy_json_option, self.region,
+        redshift.run("DELETE FROM {}".format(self.table))
+        
+        self.log.info("Copying data from S3 to Redshift")
+        rendered_key = self.s3_key.format(**context)
+        s3_path = "s3://{}/{}".format(self.s3_bucket, rendered_key)
+        formatted_sql = StageToRedshiftOperator.copy_sql_stmt.format(
+            self.table,
+            s3_path,
+            credentials.access_key,
+            credentials.secret_key,
+            self.data_format,
+            self.region
         )
-        # Run query
-        self.log.info('Copy data from {s3_path} to Redshift table {self.table}')
+        self.log.info(f"sql is {formatted_sql}")
+        self.log.info(f"Copy data from {s3_path} to {self.table} table.")
         redshift.run(formatted_sql)
+ 

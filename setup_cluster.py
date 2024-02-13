@@ -156,14 +156,14 @@ def create_iam_role(iam, DWH_IAM_ROLE_NAME):
 
 
 def create_redshift_cluster(redshift,
-                            DWH_CLUSTER_IDENTIFIER, DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_NODES,
+                            DWH_CLUSTER_IDENTIFIER, DWH_NODE_TYPE, DWH_NUM_NODES,
                             DWH_DB_NAME, DWH_DB_USER, DWH_DB_PASSWORD, DWH_PORT,
                             IAM_ROLE_ARN):
     """
     launchs Redshift cluster with given config parameters (cfg file).
     :param redshift: redshift client
     :param DWH_CLUSTER_IDENTIFIER: config parameter
-    :param DWH_CLUSTER_TYPE: config parameter
+    :param DWH_NODE_TYPE: config parameter
     :param DWH_NODE_TYPE: config parameter
     :param DWH_NUM_NODES: config parameter
     :param DWH_DB_NAME: config parameter
@@ -179,7 +179,7 @@ def create_redshift_cluster(redshift,
         response = redshift.create_cluster(
             ClusterIdentifier=DWH_CLUSTER_IDENTIFIER,
 
-            ClusterType=DWH_CLUSTER_TYPE,
+            ClusterType=DWH_NODE_TYPE,
             NodeType=DWH_NODE_TYPE,
             NumberOfNodes=int(DWH_NUM_NODES),
             #PubliclyAccessible=True,
@@ -282,7 +282,7 @@ def check_cluster_conn(DWH_ENDPOINT, DWH_DB_USER, DWH_DB_PASSWORD, DWH_PORT, DWH
     :param DWH_DB_NAME: name
     :return: none
     """
-
+    print 
     conn = psycopg2.connect("host={} dbname={} user={} password={} port={}".format(
         DWH_ENDPOINT, DWH_DB_NAME, DWH_DB_USER, DWH_DB_PASSWORD, DWH_PORT))
     print("\nconnection to redshift database is validated.")
@@ -353,7 +353,7 @@ def setup_cluster(args):
     AWS_SECRET             = config.get("AWS", "AWS_SECRET")
 
     # config dwh parameters
-    DWH_CLUSTER_TYPE       = config.get("CLUSTER", "DWH_CLUSTER_TYPE")
+    DWH_NODE_TYPE       = config.get("CLUSTER", "DWH_NODE_TYPE")
     DWH_NUM_NODES          = config.get("CLUSTER", "DWH_NUM_NODES")
     DWH_NODE_TYPE          = config.get("CLUSTER", "DWH_NODE_TYPE")
     DWH_REGION             = config.get("CLUSTER", "DWH_REGION")
@@ -378,7 +378,7 @@ def setup_cluster(args):
 
 
         cluster_info = create_redshift_cluster(redshift,
-                                DWH_CLUSTER_IDENTIFIER, DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_NODES,
+                                DWH_CLUSTER_IDENTIFIER, DWH_NODE_TYPE, DWH_NUM_NODES,
                                 DWH_DB_NAME, DWH_DB_USER, DWH_DB_PASSWORD, DWH_PORT,
                                 role_arn)
 

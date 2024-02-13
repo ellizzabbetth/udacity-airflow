@@ -97,6 +97,10 @@ Now you're ready to embark on this exciting journey into the world of Data Pipel
 
 ## Debug
 
+
+```
+docker logs -t -f --tail 100 airflow-webserver
+```
 refresh dags
 ```
 docker-compose exec -it airflow-webserver airflow dags reserialize

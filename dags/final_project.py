@@ -45,36 +45,34 @@ def final_project():
     start_operator = DummyOperator(task_id="Begin_execution")
 # https://github.com/dipenich1000/Udacity-Pipeline-Project/blob/main/dags/udac_example_dag.py
     stage_events_to_redshift = StageToRedshiftOperator(
-        task_id="load_stage_events",
+        task_id='stage_events',
         redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
-        aws_credentials_id="aws_credentials",
-        s3_bucket="udacity-data-pipelines-ebradley",
-        s3_key='log_data',
-        copy_json_option='s3://udacity-data-pipelines-ebradley/log_json_path.json',
-        region='us-west-2', #east?
-        table="public.staging_events",
-        # dag=dag
-        # s3_key="log-data/{{ execution_date.year }}/{{ execution_date.month }}/{{ ds }}-events.json",
-        # jsonpath="log_json_path.json",
-        # region=ConfigureDataAccess.REGION
+        aws_credentials_id=ConfigureDataAccess.AWS_CREDENTIALS_ID,
+        table='staging_events',
+        s3_bucket=ConfigureDataAccess.S3_BUCKET,
+        s3_key=ConfigureDataAccess.S3_LOG_KEY,
+        region=ConfigureDataAccess.REGION,
+        data_format=ConfigureDataAccess.DATA_FORMAT_EVENT
     )
 
     stage_songs_to_redshift = StageToRedshiftOperator(
         task_id="load_stage_songs",
-        redshift_conn_id="redshift",
-        aws_credentials_id="aws_credentials",
+        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        aws_credentials_id=ConfigureDataAccess.AWS_CREDENTIALS_ID,
+        table="public.staging_songs",
         s3_bucket=ConfigureDataAccess.S3_BUCKET,
         s3_key="song-data/A/A/A/",
-        copy_json_option='auto',
-        table="public.staging_songs",
-        region='us-west-2',
+        region=ConfigureDataAccess.REGION,
+        data_format="format as json 'auto'",     # For song_data, you do not have to use the json path.
+                                                 #                Just use json 'auto
     )
 
     load_songplays_table = LoadFactOperator(
         task_id="Load_songplays_fact_table",
         redshift_conn_id="redshift",
         table="public.songplays",
-        songplay_sql=SqlQueries.songplay_table_insert
+        fact_sql=SqlQueries.songplay_table_insert,
+        append_only = True
     )
 
     load_user_dimension_table = LoadDimensionOperator(
@@ -112,17 +110,12 @@ def final_project():
         sql_query=SqlQueries.time_table_insert,
         table_name="time",
     )
-
+    # https://knowledge.udacity.com/questions/54406
     run_quality_checks = DataQualityOperator(
         task_id="Run_data_quality_checks",
         redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
-        dq_checks_list=[
-            { 'sql_testcase': 'SELECT COUNT(*) FROM public.users WHERE COALESCE(first_name, last_name, gender, level) IS NULL;', 'expected_result': 0 },
-            { 'sql_testcase': 'SELECT COUNT(*) FROM public.songs WHERE COALESCE(title, artistid, year::text, duration::text) IS NULL;', 'expected_result': 0 },
-            { 'sql_testcase': 'SELECT COUNT(*) FROM public.artists WHERE COALESCE(name, location, lattitude::text, longitude::text) IS NULL;', 'expected_result': 0 },
-            { 'sql_testcase': 'SELECT COUNT(*) FROM public.time WHERE COALESCE(hour::text, day::text, week::text, month::text, year::text, weekday::text) is NULL;', 'expected_result': 0 }
-        ]
-        #tables=["artists", "songplays", "songs", "time", "users"],
+        tables=['songplays', 'users', 'songs', 'artists', 'time'],
+
     )
 
     end_operator = DummyOperator(task_id="End_execution")
