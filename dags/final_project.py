@@ -11,7 +11,7 @@ from operators.load_dimension import LoadDimensionOperator
 from operators.data_quality import DataQualityOperator
 
 
-from helpers import SqlQueries, ConfigureDataAccess
+from helpers import SqlQueries, DagConfig
 
 default_args = {
     "owner": "ebradley",
@@ -36,30 +36,30 @@ def final_project():
     # https://github.com/dipenich1000/Udacity-Pipeline-Project/blob/main/dags/udac_example_dag.py
     stage_events_to_redshift = StageToRedshiftOperator(
         task_id='stage_events',
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
-        aws_credentials_id=ConfigureDataAccess.AWS_CREDENTIALS_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
+        aws_credentials_id=DagConfig.AWS_CREDENTIALS_ID,
         table='staging_events',
-        s3_bucket=ConfigureDataAccess.S3_BUCKET,
-        s3_key=ConfigureDataAccess.S3_LOG_KEY,
-        region=ConfigureDataAccess.REGION,
-        data_format=ConfigureDataAccess.DATA_FORMAT_EVENT
+        s3_bucket=DagConfig.S3_BUCKET,
+        s3_key=DagConfig.S3_LOG_KEY,
+        region=DagConfig.REGION,
+        data_format=DagConfig.DATA_FORMAT_EVENT
     )
 
     stage_songs_to_redshift = StageToRedshiftOperator(
         task_id="load_stage_songs",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
-        aws_credentials_id=ConfigureDataAccess.AWS_CREDENTIALS_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
+        aws_credentials_id=DagConfig.AWS_CREDENTIALS_ID,
         table="public.staging_songs",
-        s3_bucket=ConfigureDataAccess.S3_BUCKET,
+        s3_bucket=DagConfig.S3_BUCKET,
         s3_key="song-data/A/A/A/",
-        region=ConfigureDataAccess.REGION,
+        region=DagConfig.REGION,
         data_format="format as json 'auto'",     # For song_data, you do not have to use the json path.
                                                  #                Just use json 'auto
     )
 
     load_songplays_table = LoadFactOperator(
         task_id="Load_songplays_fact_table",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         table="public.songplays",
         fact_sql=SqlQueries.songplay_table_insert,
         append_only = True
@@ -67,7 +67,7 @@ def final_project():
 
     load_user_dimension_table = LoadDimensionOperator(
         task_id="Load_user_dim_table",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         #load_mode="truncate_insert",
         truncate=True,
         sql_query=SqlQueries.user_table_insert,
@@ -76,7 +76,7 @@ def final_project():
 
     load_song_dimension_table = LoadDimensionOperator(
         task_id="Load_song_dim_table",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
        # load_mode="truncate_insert",
         truncate=True,
         sql_query=SqlQueries.song_table_insert,
@@ -85,7 +85,7 @@ def final_project():
 
     load_artist_dimension_table = LoadDimensionOperator(
         task_id="Load_artist_dim_table",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         truncate=True,
         #load_mode="truncate_insert",
         sql_query=SqlQueries.artist_table_insert,
@@ -94,7 +94,7 @@ def final_project():
 
     load_time_dimension_table = LoadDimensionOperator(
         task_id="Load_time_dim_table",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         # load_mode="truncate_insert",
         truncate=True,
         sql_query=SqlQueries.time_table_insert,
@@ -103,7 +103,7 @@ def final_project():
     # https://knowledge.udacity.com/questions/54406
     run_quality_checks = DataQualityOperator(
         task_id="Run_data_quality_checks",
-        redshift_conn_id=ConfigureDataAccess.REDSHIFT_CONN_ID,
+        redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         tables=['songplays', 'users', 'songs', 'artists', 'time'],
     )
 

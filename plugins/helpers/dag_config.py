@@ -1,4 +1,4 @@
-class ConfigureDataAccess():
+class DagConfig():
     REGION = 'us-east-1'
     S3_BUCKET = 'udacity-data-pipelines-bradley'
     DATA_FORMAT_EVENT= f"JSON 's3://{S3_BUCKET}/log_json_path.json'"

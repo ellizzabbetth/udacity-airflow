@@ -1,7 +1,7 @@
 from helpers.sql_queries import SqlQueries
-from helpers.configure_data_access import ConfigureDataAccess
+from helpers.dag_config import DagConfig
 
 __all__ = [
     'SqlQueries',
-    'ConfigureDataAccess'
+    'DagConfig'
 ]

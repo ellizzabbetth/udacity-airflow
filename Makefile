@@ -15,7 +15,7 @@ install:
 	setup_cluster.py
 
 connections:
-	source ./connections.sh
+	source set_connections.sh
 
 
 
