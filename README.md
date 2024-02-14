@@ -145,3 +145,125 @@ Restart airflow scheduler
 ```
 docker-compose restart airflow-scheduler
 ```
+
+
+## Feedback
+
+Requires Changes
+1 specification requires changes
+Great progress you've made on your Data Pipelines with Airflow project! 🎉 Your efforts in building a robust ETL pipeline are commendable, and your DAG exhibits solid functionality, ensuring smooth data orchestration in the Airflow UI. Let's delve into what went well and explore some suggestions for further refinement. Your dedication to implementing best practices and maintaining code quality is evident, making this project a significant achievement. Well done! 👏
+
+✅ The DAG is well-organized and easily navigable in the Airflow UI.
+✅ Setting up default_args, simplifying the application of common parameters across operators.
+✅ The DAG is appropriately scheduled to run once per hour, meeting the specified requirements.
+✅ Dynamic functionality using params allows for flexibility in running various SQL statements for quality checks.
+REQUIREMENTS
+:x: Using the TRUNCATE statement instead of DELETE for advantages like ignoring delete triggers and immediate commits.
+SUGGESTIONS
+Difference between DROP and TRUNCATE in SQL
+"Using Airflow Variables for Dynamic DAGs" for a practical guide on leveraging Airflow's variable feature.
+"Efficient Data Loading to Amazon Redshift" covers strategies like using the COPY command options and optimizing data distribution
+Continuous improvement will elevate the project even further. Great job, and best of luck with the enhancements! 🌟
+
+General
+DAG can be browsed without issues in the Airflow UI
+
+Awesome! DAG can be browsed without issues in the Airflow UI. :clap:
+
+Suggestions
+To make the DAG even more compact, you could try to use the SubDag operator with the dimension loads and hide the repetitive parts behind that. Depending on your set up, using a subdag operator could make your DAG cleaner.
+
+Using SubDAGs in Airflow
+Subdag Operator examples
+The dag follows the data flow provided in the instructions, all the tasks have a dependency and DAG begins with a start_execution task and ends with a end_execution task.
+
+Excellent work! The DAG’s graph view all the task have a dependency and DAG begins with a begin_execution task and ends with a stop_execution task. :thumbsup:
+
+Dag configuration
+DAG contains default_args dictionary, with the following keys:
+
+Owner
+Depends_on_past
+Start_date
+Retries
+Retry_delay
+Catchup
+Good job on binding the default_args with this dag
+
+The DAG object has default args set
+
+Good job defining the default_args dictionary as required.
+
+Notes
+
+If a dictionary of default_args is passed to a DAG, it will apply them to any of its operators. This makes it easy to apply a common parameter to many operators without having to type it many times.
+
+External Resources
+
+Backfill and Catchup
+
+How to prevent airflow from backfilling dag runs?
+
+The DAG should be scheduled to run once an hour
+
+Good work scheduling the DAG to run once an hour as required.
+
+Staging the data
+There is a task that to stages data from S3 to Redshift. (Runs a Redshift copy statement)
+
+Nice work the stage operator. I suggest using a template field that would allow to load timestamped files from S3 based on the execution time and run backfills.
+but your current implementation is also great
+
+template_fields = ("s3_key",) 
+Check the detail here https://airflow.readthedocs.io/en/latest/howto/custom-operator.html
+
+Instead of running a static SQL statement to stage the data, the task uses params to generate the copy statement dynamically
+
+Good job dynamically generating the copy statement using params as opposed to static SQL statements.
+
+The operator contains logging in different steps of the execution
+
+logging.info shows the status of staging execution. Nice work! :thumbsup:
+
+The SQL statements are executed by using a Airflow hook
+
+Good job connecting to the database via an Airflow hook. :clap:
+
+Loading dimensions and facts
+Dimensions are loaded with on the LoadDimension operator
+
+There is a separate functional operator for dimensions LoadDimensionOperator.
+
+Facts are loaded with on the LoadFact operator
+
+There is a separate functional operator for facts LoadFactOperator as well. :clap:
+
+Instead of running a static SQL statement to stage the data, the task uses params to generate the copy statement dynamically
+
+Good job dynamically generating the copy statement using params as opposed to static SQL statements.
+
+The DAG allows to switch between append-only and delete-load functionality
+
+Great job that you have added a truncate param to allow the switch.
+However, instead of deleting the table, it would be better to use the truncate.
+
+The TRUNCATE statement can provide the following advantages over a DELETE statement:
+
+The TRUNCATE statement can ignore delete triggers
+The TRUNCATE statement can perform an immediate commit
+The TRUNCATE statement can keep storage allocated for the table
+Data Quality Checks
+Data quality check is done with correct operator
+
+Great work! The operator that runs a check on the fact or dimension table(s) after the data has been loaded is DataQualityOperator. The data quality operator looks awesome. It is simple but still allows you to do import checks on the data and catch the possible data quality issues as soon as possible.
+
+The DAG either fails or retries n times
+
+Check if the dag fails and is not passed, by raising ValueError.
+
+ADDITIONAL RESOURCES
+Troubleshooting Airflow ValueError
+airflow.exceptions --- Airflow Documentation
+Operator uses params to get the tests and the results, tests are not hard coded to the operator
+
+The parameters were used to add some dynamic functionality to the operators and allow to run various SQL statements instead of hardcoded SQL statement. Well done! :star:
