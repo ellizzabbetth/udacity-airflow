@@ -69,7 +69,7 @@ def create_client(DWH_REGION, AWS_KEY, AWS_SECRET):
                             aws_secret_access_key=AWS_SECRET
                             )
 
-    return ec2, s3, iam, redshift
+    return ec2, iam, redshift
 
 
 def create_iam_role(iam, DWH_IAM_ROLE_NAME):

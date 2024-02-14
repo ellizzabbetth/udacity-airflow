@@ -140,3 +140,8 @@ or print the full stacktrace for python error found in dags
 ```
 docker-compose exec airflow airflow list_dags
 ```
+
+Restart airflow scheduler
+```
+docker-compose restart airflow-scheduler
+```

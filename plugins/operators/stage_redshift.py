@@ -44,9 +44,9 @@ class StageToRedshiftOperator(BaseOperator):
         aws_hook = AwsGenericHook(self.aws_credentials_id)
         credentials = aws_hook.get_credentials()
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-        
+        # The TRUNCATE TABLE command deletes the data inside a table, but not the table itself.
         self.log.info("Clearing data from destination Redshift table")
-        redshift.run("DELETE FROM {}".format(self.table))
+        redshift.run("TRUNCATE TABLE {}".format(self.table))
         
         self.log.info("Copying data from S3 to Redshift")
         rendered_key = self.s3_key.format(**context)

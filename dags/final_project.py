@@ -62,14 +62,13 @@ def final_project():
         redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
         table="public.songplays",
         fact_sql=SqlQueries.songplay_table_insert,
-        append_only = True
+        append_only = True # do not truncate
     )
 
     load_user_dimension_table = LoadDimensionOperator(
         task_id="Load_user_dim_table",
         redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
-        #load_mode="truncate_insert",
-        truncate=True,
+        append_only=False, # truncate
         sql_query=SqlQueries.user_table_insert,
         table_name="users",
     )
@@ -77,8 +76,7 @@ def final_project():
     load_song_dimension_table = LoadDimensionOperator(
         task_id="Load_song_dim_table",
         redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
-       # load_mode="truncate_insert",
-        truncate=True,
+        append_only=False, # truncate
         sql_query=SqlQueries.song_table_insert,
         table_name="songs",
     )
@@ -86,8 +84,7 @@ def final_project():
     load_artist_dimension_table = LoadDimensionOperator(
         task_id="Load_artist_dim_table",
         redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
-        truncate=True,
-        #load_mode="truncate_insert",
+        append_only=False, # truncate
         sql_query=SqlQueries.artist_table_insert,
         table_name="artists",
     )
@@ -95,8 +92,8 @@ def final_project():
     load_time_dimension_table = LoadDimensionOperator(
         task_id="Load_time_dim_table",
         redshift_conn_id=DagConfig.REDSHIFT_CONN_ID,
-        # load_mode="truncate_insert",
-        truncate=True,
+
+        append_only=False, # truncate
         sql_query=SqlQueries.time_table_insert,
         table_name="time",
     )
